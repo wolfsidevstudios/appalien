@@ -1,5 +1,13 @@
 import type { DribbbleShot } from '../types';
 
+declare global {
+  interface Window {
+    proxy: {
+      fetch: (args: { url: string; headers?: Record<string, string> }) => Promise<Response>;
+    };
+  }
+}
+
 const ACCESS_TOKEN = '1mkRtQT0L6OPD2VoAMtrkeazsa-fXWsTegYOr4nqFog';
 
 export const searchDribbble = async (query: string): Promise<DribbbleShot[]> => {
@@ -10,7 +18,8 @@ export const searchDribbble = async (query: string): Promise<DribbbleShot[]> => 
   const url = `https://api.dribbble.com/v2/search/shots?q=${encodeURIComponent(query)}&per_page=30`;
 
   try {
-    const response = await fetch(url, {
+    const response = await window.proxy.fetch({
+      url,
       headers: {
         'Authorization': `Bearer ${ACCESS_TOKEN}`,
       },
