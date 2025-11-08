@@ -10,6 +10,28 @@ declare global {
 
 const ACCESS_TOKEN = '1mkRtQT0L6OPD2VoAMtrkeazsa-fXWsTegYOr4nqFog';
 
+const getProxy = (): Promise<Window['proxy']> => {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const maxAttempts = 50; // Wait for up to 5 seconds
+    const interval = 100; // Check every 100ms
+
+    const check = () => {
+      if (window.proxy) {
+        resolve(window.proxy);
+      } else {
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(check, interval);
+        } else {
+          reject(new Error("Proxy service failed to initialize in time."));
+        }
+      }
+    };
+    check();
+  });
+};
+
 export const searchDribbble = async (query: string): Promise<DribbbleShot[]> => {
   if (!query.trim()) {
     return [];
@@ -18,7 +40,8 @@ export const searchDribbble = async (query: string): Promise<DribbbleShot[]> => 
   const url = `https://api.dribbble.com/v2/search/shots?q=${encodeURIComponent(query)}&per_page=30`;
 
   try {
-    const response = await window.proxy.fetch({
+    const proxy = await getProxy();
+    const response = await proxy.fetch({
       url,
       headers: {
         'Authorization': `Bearer ${ACCESS_TOKEN}`,
